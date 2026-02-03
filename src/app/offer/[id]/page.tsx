@@ -177,7 +177,9 @@ export default function OfferDetails({ params }: { params: { id: string } }) {
                 </label>
                 <DatePicker
                   selected={startDate}
-                  onChange={(date) => setStartDate(date)}
+                  onChange={(date: React.SetStateAction<Date | null>) =>
+                    setStartDate(date)
+                  }
                   selectsStart
                   startDate={startDate}
                   endDate={endDate}

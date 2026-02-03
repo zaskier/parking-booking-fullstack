@@ -1,29 +1,66 @@
-'use client';
+'use client'
 
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import { Icon } from 'leaflet';
-import type { Offer } from '@/app/api/offers/types';
-import { useRouter } from 'next/navigation'; // Import useRouter
+import { useState, useEffect } from 'react'
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import 'leaflet/dist/leaflet.css'
+import { Icon, LatLngExpression } from 'leaflet'
+import type { Offer } from '@/app/api/offers/types'
+import { useRouter } from 'next/navigation'
+import {
+  getCoordsForCity,
+  GeoCoordinates,
+} from '@/utils/geocoding/getCoordsForCity'
 
 // Custom marker icon
 const customIcon = new Icon({
-  iconUrl: '/homepage/location.svg', // Assuming you have a marker icon here
-  iconSize: [38, 38], // size of the icon
-});
+  iconUrl: '/homepage/location.svg',
+  iconSize: [38, 38],
+})
 
 interface OffersOnMapProps {
-  offers: Offer[];
+  offers: Offer[]
+  city: string
 }
 
-export default function OffersOnMap({ offers }: OffersOnMapProps) {
-  const router = useRouter(); // Initialize useRouter
+// Set map view
+function ChangeView({
+  center,
+  zoom,
+}: {
+  center: LatLngExpression
+  zoom: number
+}) {
+  const map = useMap()
+  map.setView(center, zoom)
+  return null
+}
 
-  // Default to Krakow's coordinates if no offers or offers don't have location
-  const defaultPosition: [number, number] = [50.0647, 19.945]; // Krakow coordinates
+export default function OffersOnMap({ offers, city }: OffersOnMapProps) {
+  const router = useRouter()
+  const [mapCenter, setMapCenter] = useState<LatLngExpression>([
+    50.0647, 19.945,
+  ]) // Default to Krakow
+
+  useEffect(() => {
+    const fetchCoords = async () => {
+      if (city) {
+        const coords = await getCoordsForCity(city)
+        if (coords) {
+          setMapCenter([coords.lat, coords.lon])
+        }
+      }
+    }
+    fetchCoords()
+  }, [city])
 
   return (
-    <MapContainer center={defaultPosition} zoom={13} scrollWheelZoom={false} style={{ height: '500px', width: '100%' }}>
+    <MapContainer
+      center={mapCenter}
+      zoom={13}
+      scrollWheelZoom={false}
+      style={{ height: '500px', width: '100%' }}
+    >
+      <ChangeView center={mapCenter} zoom={13} />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -31,22 +68,28 @@ export default function OffersOnMap({ offers }: OffersOnMapProps) {
       {offers.map((offer) => {
         if (offer.latitude && offer.longitude) {
           return (
-            <Marker key={offer.id} position={[offer.latitude, offer.longitude]} icon={customIcon}>
+            <Marker
+              key={offer.id}
+              position={[offer.latitude, offer.longitude]}
+              icon={customIcon}
+            >
               <Popup>
-                <div 
+                <div
                   onClick={() => router.push(`/offer/${offer.id}`)}
-                  style={{ cursor: 'pointer' }} // Add a pointer cursor to indicate clickability
+                  style={{ cursor: 'pointer' }}
                 >
-                  <b>{offer.title}</b><br />
-                  {offer.address}<br />
+                  <b>{offer.title}</b>
+                  <br />
+                  {offer.address}
+                  <br />
                   Price: {offer.price} PLN
                 </div>
               </Popup>
             </Marker>
-          );
+          )
         }
-        return null;
+        return null
       })}
     </MapContainer>
-  );
+  )
 }

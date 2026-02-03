@@ -71,7 +71,7 @@ export default function Offers({ city, parkingType }: OffersProps) {
   return (
     <div className="p-4">
       <div className="mb-8">
-        <OffersOnMap offers={offers} />
+        <OffersOnMap offers={offers} city={city} />
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {offers.map((offer) => (
