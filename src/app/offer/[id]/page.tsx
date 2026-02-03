@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
-import offers from '@/app/api/offers/__mocks__/offers.json'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import Link from 'next/link'
 import { loadStripe } from '@stripe/stripe-js'
 import { supabase } from '@/utils/supabase/client'
+import type { Offer } from '@/app/api/offers/types'
 
 // Load Stripe outside of component render
 const stripePromise = loadStripe(
@@ -16,12 +16,35 @@ const stripePromise = loadStripe(
 
 export default function OfferDetails({ params }: { params: { id: string } }) {
   const { id } = params
-  const offer = offers.find((o) => o.id === parseInt(id))
+  const [offer, setOffer] = useState<Offer | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const [startDate, setStartDate] = useState<Date | null>(new Date())
   const [endDate, setEndDate] = useState<Date | null>(new Date())
   const [totalPrice, setTotalPrice] = useState(0)
   const [userEmail, setUserEmail] = useState('')
+
+  useEffect(() => {
+    const fetchOffer = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const response = await fetch(`http://localhost:8080/offers/${id}`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch offer')
+        }
+        const data: Offer = await response.json()
+        setOffer(data)
+      } catch (err: any) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchOffer()
+  }, [id])
 
   useEffect(() => {
     if (startDate && endDate && offer) {
@@ -66,6 +89,25 @@ export default function OfferDetails({ params }: { params: { id: string } }) {
       authListener?.subscription.unsubscribe()
     }
   }, [])
+
+  if (loading) {
+    return (
+      <div className="container mx-auto py-20 text-center">
+        <h1 className="text-2xl font-bold">Loading offer...</h1>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-20 text-center">
+        <h1 className="text-2xl font-bold text-red-500">Error: {error}</h1>
+        <Link href="/" className="text-blue-500 underline mt-4 block">
+          Go back home
+        </Link>
+      </div>
+    )
+  }
 
   if (!offer) {
     return (
