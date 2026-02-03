@@ -11,6 +11,7 @@ export interface OfferFormData {
   content: string
   price: string
   city: string
+  address: string
   type: OfferType
 }
 
@@ -19,6 +20,7 @@ export interface OfferFormErrors {
   content?: string
   price?: string
   city?: string
+  address?: string
   photo?: string
   form?: string
 }
@@ -45,6 +47,10 @@ const validateField = (
       return value.length > 100
         ? 'City name cannot exceed 100 characters.'
         : undefined
+    case 'address':
+      return value.length < 5
+        ? 'Address must be at least 5 characters long.'
+        : undefined
     default:
       return undefined
   }
@@ -53,12 +59,14 @@ const validateField = (
 interface OfferFormState {
   formData: OfferFormData
   photo: File | null
+  imageUrl: string | null
   errors: OfferFormErrors
   isFormValid: boolean
   submitting: boolean
 
   setFormData: (data: Partial<OfferFormData>) => void
   setPhoto: (file: File | null) => void
+  setImageUrl: (url: string | null) => void
   setErrors: (errors: OfferFormErrors) => void
   setSubmitting: (submitting: boolean) => void
   resetForm: () => void
@@ -72,9 +80,11 @@ export const useOfferFormStore = create<OfferFormState>((set, get) => ({
     content: '',
     price: '',
     city: '',
+    address: '',
     type: OfferType.Guarded,
   },
   photo: null,
+  imageUrl: null,
   errors: {},
   isFormValid: false,
   submitting: false,
@@ -101,6 +111,7 @@ export const useOfferFormStore = create<OfferFormState>((set, get) => ({
     }))
     get().validateForm()
   },
+  setImageUrl: (url) => set({ imageUrl: url }),
   setErrors: (errors) => {
     set({ errors })
     get().validateForm()
@@ -113,9 +124,11 @@ export const useOfferFormStore = create<OfferFormState>((set, get) => ({
         content: '',
         price: '',
         city: '',
+        address: '',
         type: OfferType.Guarded,
       },
       photo: null,
+      imageUrl: null,
       errors: {},
       isFormValid: false,
       submitting: false,

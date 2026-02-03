@@ -8,6 +8,7 @@ import {
   OfferType,
   OfferFormData,
 } from '../../store/useOfferFormStore'
+import { getCoordsForAddress } from '../../utils/geocoding/getCoordsForAddress'
 
 export default function AddOfferPage() {
   const router = useRouter()
@@ -19,6 +20,7 @@ export default function AddOfferPage() {
     submitting,
     setFormData,
     setPhoto,
+    setImageUrl,
     setErrors,
     setSubmitting,
     resetForm,
@@ -74,52 +76,61 @@ export default function AddOfferPage() {
     setFormData({ [name]: value })
   }
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0]
       setPhoto(file)
+
+      // Upload the photo immediately
+      const photoFormData = new FormData()
+      photoFormData.append('file', file)
+
+      try {
+        const uploadResponse = await fetch(
+          `http://localhost:8080/offers/upload`,
+          {
+            method: 'POST',
+            body: photoFormData,
+          },
+        )
+
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload photo.')
+        }
+
+        const uploadResult = await uploadResponse.json()
+        setImageUrl(uploadResult.url)
+      } catch (err: any) {
+        setErrors({ ...errors, photo: err.message })
+      }
     } else {
       setPhoto(null)
+      setImageUrl(null)
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Final validation check
     const isValid = validateAllFields()
-
-    if (!isValid) {
+    if (!isValid || !useOfferFormStore.getState().imageUrl) {
+      if (!useOfferFormStore.getState().imageUrl) {
+        setErrors({ ...errors, photo: 'Please upload a photo.' })
+      }
       return
     }
 
     setSubmitting(true)
 
     try {
-      // Step 1: Upload the photo
-      const photoFormData = new FormData()
-      photoFormData.append('file', photo as Blob)
+      const coords = await getCoordsForAddress(formData.address)
 
-      const uploadResponse = await fetch(
-        `http://localhost:8080/offers/upload`,
-        {
-          method: 'POST',
-          body: photoFormData,
-        },
-      )
-
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload photo.')
-      }
-
-      const uploadResult = await uploadResponse.json()
-      const imageUrl = uploadResult.url
-
-      // Step 2: Submit the offer with the photo URL
       const offerData = {
         ...formData,
-        price: parseFloat(formData.price), // Ensure price is a number
-        image: imageUrl,
+        price: parseFloat(formData.price),
+        image: useOfferFormStore.getState().imageUrl,
+        latitude: coords?.lat,
+        longitude: coords?.lon,
       }
 
       const offerResponse = await fetch(`http://localhost:8080/offers`, {
@@ -238,6 +249,27 @@ export default function AddOfferPage() {
           />
           {errors.city && (
             <p className="mt-1 text-xs text-red-500">{errors.city}</p>
+          )}
+        </div>
+        <div>
+          <label
+            htmlFor="address"
+            className="mb-1 block font-medium text-gray-700"
+          >
+            Address
+          </label>
+          <input
+            id="address"
+            name="address"
+            type="text"
+            value={formData.address}
+            onChange={handleChange}
+            placeholder="e.g., 123 Main St"
+            className={`w-full rounded-md border p-2 focus:outline-none focus:ring-1 ${errors.address ? 'border-red-500 ring-red-500' : 'focus:ring-main-blue'}`}
+            required
+          />
+          {errors.address && (
+            <p className="mt-1 text-xs text-red-500">{errors.address}</p>
           )}
         </div>
         <div>
