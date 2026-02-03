@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Icon } from 'leaflet';
 import type { Offer } from '@/app/api/offers/types';
+import { useRouter } from 'next/navigation'; // Import useRouter
 
 // Custom marker icon
 const customIcon = new Icon({
@@ -16,6 +17,8 @@ interface OffersOnMapProps {
 }
 
 export default function OffersOnMap({ offers }: OffersOnMapProps) {
+  const router = useRouter(); // Initialize useRouter
+
   // Default to Krakow's coordinates if no offers or offers don't have location
   const defaultPosition: [number, number] = [50.0647, 19.945]; // Krakow coordinates
 
@@ -30,9 +33,14 @@ export default function OffersOnMap({ offers }: OffersOnMapProps) {
           return (
             <Marker key={offer.id} position={[offer.latitude, offer.longitude]} icon={customIcon}>
               <Popup>
-                <b>{offer.title}</b><br />
-                {offer.address}<br />
-                Price: {offer.price} PLN
+                <div 
+                  onClick={() => router.push(`/offer/${offer.id}`)}
+                  style={{ cursor: 'pointer' }} // Add a pointer cursor to indicate clickability
+                >
+                  <b>{offer.title}</b><br />
+                  {offer.address}<br />
+                  Price: {offer.price} PLN
+                </div>
               </Popup>
             </Marker>
           );
