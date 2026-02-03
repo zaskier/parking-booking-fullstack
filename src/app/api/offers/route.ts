@@ -1,27 +1,7 @@
 import { NextResponse } from 'next/server';
-import path from 'path';
-import { promises as fs } from 'fs';
-import type { Offer } from './types'; // Assuming types are defined in a separate file
-
-// Use a single source of truth for the data file path
-const dataFilePath = path.join(process.cwd(), 'src/app/api/offers/__mocks__/offers.json');
-
-async function readData(): Promise<Offer[]> {
-  try {
-    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-    return JSON.parse(fileContent);
-  } catch (error) {
-    // If the file doesn't exist, return an empty array
-    return [];
-  }
-}
-
-async function writeData(data: Offer[]): Promise<void> {
-  await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2));
-}
 
 /**
- * API handler for fetching parking offers.
+ * API handler for fetching parking offers from the backend.
  * Supports filtering by city via a query parameter.
  * @param request The incoming Next.js API request object.
  * @returns A JSON response with the filtered or full list of offers.
@@ -29,18 +9,24 @@ async function writeData(data: Offer[]): Promise<void> {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const city = searchParams.get('city');
-  const offers = await readData();
 
-  let filteredOffers: Offer[] = offers;
+  try {
+    let url = 'http://localhost:8080/offers';
+    if (city) {
+      url += `?city=${encodeURIComponent(city)}`;
+    }
+    const response = await fetch(url);
 
-  if (city) {
-    // Filter offers by the provided city, case-insensitively.
-    filteredOffers = offers.filter(
-      (offer) => offer.city.toLowerCase() === city.toLowerCase()
-    );
+    if (!response.ok) {
+      throw new Error(`Failed to fetch offers from backend: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return NextResponse.json(data);
+  } catch (error: any) {
+    console.error('Error fetching offers from backend:', error);
+    return NextResponse.json({ message: 'Error fetching offers', error: error.message }, { status: 500 });
   }
-
-  return NextResponse.json(filteredOffers);
 }
 
 /**
@@ -51,19 +37,22 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const newOfferData = await request.json();
-    const offers = await readData();
+    const response = await fetch('http://localhost:8080/offers', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newOfferData),
+    });
 
-    const newOffer: Offer = {
-      // Generate a unique ID
-      id: offers.length > 0 ? Math.max(...offers.map(o => o.id)) + 1 : 1,
-      ...newOfferData,
-    };
+    if (!response.ok) {
+      throw new Error(`Failed to create offer in backend: ${response.statusText}`);
+    }
 
-    offers.push(newOffer);
-    await writeData(offers);
-
-    return NextResponse.json(newOffer, { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ message: 'Error writing to file' }, { status: 500 });
+    const data = await response.json();
+    return NextResponse.json(data, { status: response.status });
+  } catch (error: any) {
+    console.error('Error creating offer in backend:', error);
+    return NextResponse.json({ message: 'Error creating offer', error: error.message }, { status: 500 });
   }
 }

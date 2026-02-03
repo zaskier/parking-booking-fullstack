@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import type { Offer } from '@/app/api/offers/types';
 import OfferCard from './OfferCard';
+import dynamic from 'next/dynamic';
+
+const OffersOnMap = dynamic(() => import('./OffersOnMap'), { ssr: false });
 
 interface OffersProps {
   city: string;
@@ -66,10 +69,15 @@ export default function Offers({ city, parkingType }: OffersProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 lg:grid-cols-3">
-      {offers.map((offer) => (
-        <OfferCard key={offer.id} offer={offer} />
-      ))}
+    <div className="p-4">
+      <div className="mb-8">
+        <OffersOnMap offers={offers} />
+      </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {offers.map((offer) => (
+          <OfferCard key={offer.id} offer={offer} />
+        ))}
+      </div>
     </div>
   );
 }

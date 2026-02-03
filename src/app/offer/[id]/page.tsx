@@ -32,7 +32,7 @@ export default function OfferDetails({ params }: { params: { id: string } }) {
       // Ensure at least 1 day if same day or dates valid
       const days = diffDays === 0 ? 1 : diffDays
 
-      const pricePerDay = parseFloat(offer.price.replace('$', ''))
+      const pricePerDay = offer.price
       if (!isNaN(pricePerDay)) {
         setTotalPrice(days * pricePerDay)
       }
