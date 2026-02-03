@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Query,
   UploadedFile,
@@ -17,6 +18,7 @@ import { CreateOfferCommand } from './commands/impl/create-offer.command'
 import { CreateOfferDto } from './dtos/create-offer.dto'
 import { OfferType } from './enums/type.enum'
 import { FindAllOffersQuery } from './queries/impl/find-all-offers.query'
+import { FindOneOfferQuery } from './queries/impl/find-one-offer.query'
 import { UploadsService } from '../uploads/uploads.service'
 
 @Controller('offers')
@@ -30,6 +32,11 @@ export class OffersController {
   @Post()
   create(@Body() createOfferDto: CreateOfferDto) {
     return this.commandBus.execute(new CreateOfferCommand(createOfferDto))
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.queryBus.execute(new FindOneOfferQuery(+id))
   }
 
   @Get()
