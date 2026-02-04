@@ -9,13 +9,22 @@ import { NextResponse } from 'next/server';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const city = searchParams.get('city');
+  const email = searchParams.get('email');
+  const type = searchParams.get('type');
 
   try {
-    let url = 'http://localhost:8080/offers';
+    const backendUrl = new URL('http://localhost:8080/offers');
     if (city) {
-      url += `?city=${encodeURIComponent(city)}`;
+      backendUrl.searchParams.append('city', city);
     }
-    const response = await fetch(url);
+    if (email) {
+      backendUrl.searchParams.append('email', email);
+    }
+    if (type) {
+      backendUrl.searchParams.append('type', type);
+    }
+
+    const response = await fetch(backendUrl.toString());
 
     if (!response.ok) {
       throw new Error(`Failed to fetch offers from backend: ${response.statusText}`);

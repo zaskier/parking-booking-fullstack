@@ -20,7 +20,7 @@ import { FindAllOffersQuery } from '../application/queries/impl/find-all-offers.
 import { FindOneOfferQuery } from '../application/queries/impl/find-one-offer.query'
 import { UploadsService } from '../../uploads/uploads.service'
 import { OfferType } from '../domain/enums/type.enum'
-import { Offer } from 'src/database/entities/offer.entity'
+import { Offer } from '../domain/entities/offer'
 
 @Controller('offers')
 export class OffersController {
@@ -43,10 +43,9 @@ export class OffersController {
   @Get()
   findAll(
     @Query('type') type?: OfferType,
-    @Query('lat') lat?: number,
-    @Query('lng') lng?: number,
+    @Query('email') email?: string,
   ): Promise<Offer[]> {
-    return this.queryBus.execute(new FindAllOffersQuery(type, lat, lng))
+    return this.queryBus.execute(new FindAllOffersQuery(type, email))
   }
 
   @Post('image')
