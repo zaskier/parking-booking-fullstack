@@ -146,7 +146,7 @@ export default function OfferDetails({ params }: { params: { id: string } }) {
             <h1 className="text-4xl font-bold mb-2">{offer.title}</h1>
             <div className="flex items-center space-x-2">
               <span className="text-2xl font-semibold text-blue-600">
-                {offer.price}
+                {offer.price}$
               </span>
               <span className="text-gray-500">/ day</span>
             </div>
