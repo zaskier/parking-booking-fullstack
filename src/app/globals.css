@@ -23,6 +23,10 @@ body {
   background: white;
 }
 
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
