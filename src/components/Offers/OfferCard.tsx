@@ -4,11 +4,14 @@ import type { Offer } from '@/app/api/offers/types';
 
 interface OfferCardProps {
   offer: Offer;
+  editMode?: boolean; // New prop
 }
 
-export default function OfferCard({ offer }: OfferCardProps) {
+export default function OfferCard({ offer, editMode }: OfferCardProps) {
+  const linkHref = editMode ? `/offer/edit/${offer.id}` : `/offer/${offer.id}`;
+
   return (
-    <Link href={`/offer/${offer.id}`} className="block h-full">
+    <Link href={linkHref} className="block h-full">
       <div className="m-2 flex h-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
         <div className="relative h-48 w-full">
           <Image
