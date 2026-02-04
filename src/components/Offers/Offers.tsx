@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import type { Offer } from '@/app/api/offers/types';
 import OfferCard from './OfferCard';
 import dynamic from 'next/dynamic';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 const OffersOnMap = dynamic(() => import('./OffersOnMap'), { ssr: false });
 
@@ -34,14 +35,13 @@ export default function Offers({ city, parkingType }: OffersProps) {
           throw new Error('Failed to fetch offers');
         }
         const data: Offer[] = await response.json();
-        
+
         // Client-side filtering for parkingType
         if (parkingType && parkingType !== 'Any') {
-          setOffers(data.filter(offer => offer.type === parkingType));
+          setOffers(data.filter((offer) => offer.type === parkingType));
         } else {
           setOffers(data);
         }
-
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -57,7 +57,12 @@ export default function Offers({ city, parkingType }: OffersProps) {
   }
 
   if (loading) {
-    return <div className="p-4 text-center">Loading offers...</div>;
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <LoadingSpinner />
+        <div className="p-4 text-center">Loading your offers...</div>;
+      </div>
+    );
   }
 
   if (error) {
@@ -65,7 +70,11 @@ export default function Offers({ city, parkingType }: OffersProps) {
   }
 
   if (offers.length === 0) {
-    return <div className="p-4 text-center text-gray-500">No offers found for the selected criteria.</div>;
+    return (
+      <div className="p-4 text-center text-gray-500">
+        No offers found for the selected criteria.
+      </div>
+    );
   }
 
   return (

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import type { Offer } from '@/app/api/offers/types';
 import OfferCard from '@/components/Offers/OfferCard';
 import { supabase } from '@/utils/supabase/client';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 export default function MyOffersPage() {
   const [offers, setOffers] = useState<Offer[]>([]);
@@ -14,11 +15,13 @@ export default function MyOffersPage() {
   useEffect(() => {
     // Fetch user email from Supabase
     const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
       if (user?.email) {
         setUserEmail(user.email);
       } else {
-        setError("User not logged in.");
+        setError('User not logged in.');
         setLoading(false);
       }
     };
@@ -53,7 +56,12 @@ export default function MyOffersPage() {
   }, [userEmail]);
 
   if (loading) {
-    return <div className="p-4 text-center">Loading your offers...</div>;
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <LoadingSpinner />
+        <div className="p-4 text-center">Loading your offers...</div>;
+      </div>
+    );
   }
 
   if (error) {
@@ -66,7 +74,7 @@ export default function MyOffersPage() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">My Offers</h1>
+      <h1 className="mb-6 text-3xl font-bold">My Offers</h1>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {offers.map((offer) => (
           <OfferCard key={offer.id} offer={offer} />
