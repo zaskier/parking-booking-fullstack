@@ -14,12 +14,13 @@ import {
 import { CommandBus, QueryBus } from '@nestjs/cqrs'
 import { FileInterceptor } from '@nestjs/platform-express'
 import type { Express } from 'express'
-import { CreateOfferCommand } from './commands/impl/create-offer.command'
-import { CreateOfferDto } from './dtos/create-offer.dto'
-import { OfferType } from './enums/type.enum'
-import { FindAllOffersQuery } from './queries/impl/find-all-offers.query'
-import { FindOneOfferQuery } from './queries/impl/find-one-offer.query'
-import { UploadsService } from '../uploads/uploads.service'
+import { CreateOfferCommand } from '../application/commands/impl/create-offer.command'
+import { CreateOfferDto } from '../application/dtos/create-offer.dto'
+import { FindAllOffersQuery } from '../application/queries/impl/find-all-offers.query'
+import { FindOneOfferQuery } from '../application/queries/impl/find-one-offer.query'
+import { UploadsService } from '../../uploads/uploads.service'
+import { OfferType } from '../domain/enums/type.enum'
+import { Offer } from 'src/database/entities/offer.entity'
 
 @Controller('offers')
 export class OffersController {
@@ -35,7 +36,7 @@ export class OffersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string): Promise<Offer> {
     return this.queryBus.execute(new FindOneOfferQuery(+id))
   }
 
@@ -44,11 +45,11 @@ export class OffersController {
     @Query('type') type?: OfferType,
     @Query('lat') lat?: number,
     @Query('lng') lng?: number,
-  ) {
+  ): Promise<Offer[]> {
     return this.queryBus.execute(new FindAllOffersQuery(type, lat, lng))
   }
 
-  @Post('upload')
+  @Post('image')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadedFile(

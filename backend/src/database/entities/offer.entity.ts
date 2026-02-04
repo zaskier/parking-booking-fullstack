@@ -1,5 +1,5 @@
+import { OfferType } from 'src/offers/domain/enums/type.enum'
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
-import { OfferType } from '../../offers/enums/type.enum'
 
 @Entity('offers')
 export class Offer {

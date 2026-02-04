@@ -1,4 +1,4 @@
-import { OfferType } from '../../enums/type.enum';
+import { OfferType } from 'src/offers/domain/enums/type.enum'
 
 export class FindAllOffersQuery {
   constructor(
