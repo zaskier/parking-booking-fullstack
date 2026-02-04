@@ -1,17 +1,13 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
-import {
-  useOfferFormStore,
-  OfferType,
-  OfferFormData,
-} from '../../store/useOfferFormStore'
-import { getCoordsForAddress } from '../../utils/geocoding/getCoordsForAddress'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { useOfferFormStore, OfferType, OfferFormData } from '../../../store/useOfferFormStore';
+import { getCoordsForAddress } from '../../../utils/geocoding/getCoordsForAddress';
 
 export default function AddOfferPage() {
-  const router = useRouter()
+  const router = useRouter();
   const {
     formData,
     photo,
@@ -24,154 +20,141 @@ export default function AddOfferPage() {
     setErrors,
     setSubmitting,
     resetForm,
-    validateAllFields,
-  } = useOfferFormStore()
+    validateAllFields
+  } = useOfferFormStore();
 
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Load form data from local storage on mount
   useEffect(() => {
-    const savedData = localStorage.getItem('offerFormData')
+    const savedData = localStorage.getItem('offerFormData');
     if (savedData) {
       try {
-        setFormData(JSON.parse(savedData))
+        setFormData(JSON.parse(savedData));
       } catch (e) {
-        console.error('Failed to parse form data', e)
+        console.error('Failed to parse form data', e);
       }
     } else {
-      resetForm()
+      resetForm();
     }
-  }, [resetForm, setFormData])
+  }, [resetForm, setFormData]);
 
   // Persist form data to local storage whenever it changes
   useEffect(() => {
-    localStorage.setItem('offerFormData', JSON.stringify(formData))
-  }, [formData])
+    localStorage.setItem('offerFormData', JSON.stringify(formData));
+  }, [formData]);
 
   // Update image preview when photo changes
   useEffect(() => {
     if (photo) {
-      const url = URL.createObjectURL(photo)
-      setPreviewUrl(url)
+      const url = URL.createObjectURL(photo);
+      setPreviewUrl(url);
 
       // Cleanup URL on unmount
       return () => {
-        URL.revokeObjectURL(url)
-      }
+        URL.revokeObjectURL(url);
+      };
     } else {
-      setPreviewUrl(null)
+      setPreviewUrl(null);
     }
-  }, [photo])
+  }, [photo]);
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target as {
-      name: keyof OfferFormData
-      value: string
-    }
+      name: keyof OfferFormData;
+      value: string;
+    };
 
-    setFormData({ [name]: value })
-  }
+    setFormData({ [name]: value });
+  };
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0]
-      setPhoto(file)
+      const file = e.target.files[0];
+      setPhoto(file);
 
       // Upload the photo immediately
-      const photoFormData = new FormData()
-      photoFormData.append('file', file)
+      const photoFormData = new FormData();
+      photoFormData.append('file', file);
 
       try {
-        const uploadResponse = await fetch(
-          `http://localhost:8080/offers/image`,
-          {
-            method: 'POST',
-            body: photoFormData,
-          },
-        )
+        const uploadResponse = await fetch(`http://localhost:8080/offers/image`, {
+          method: 'POST',
+          body: photoFormData
+        });
 
         if (!uploadResponse.ok) {
-          throw new Error('Failed to upload photo.')
+          throw new Error('Failed to upload photo.');
         }
 
-        const uploadResult = await uploadResponse.json()
-        setImageUrl(uploadResult.url)
+        const uploadResult = await uploadResponse.json();
+        setImageUrl(uploadResult.url);
       } catch (err: any) {
-        setErrors({ ...errors, photo: err.message })
+        setErrors({ ...errors, photo: err.message });
       }
     } else {
-      setPhoto(null)
-      setImageUrl(null)
+      setPhoto(null);
+      setImageUrl(null);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const isValid = validateAllFields()
+    const isValid = validateAllFields();
     if (!isValid || !useOfferFormStore.getState().imageUrl) {
       if (!useOfferFormStore.getState().imageUrl) {
-        setErrors({ ...errors, photo: 'Please upload a photo.' })
+        setErrors({ ...errors, photo: 'Please upload a photo.' });
       }
-      return
+      return;
     }
 
-    setSubmitting(true)
+    setSubmitting(true);
 
     try {
-      const coords = await getCoordsForAddress(formData.address)
+      const coords = await getCoordsForAddress(formData.address);
 
       const offerData = {
         ...formData,
         price: parseFloat(formData.price),
         image: useOfferFormStore.getState().imageUrl,
         latitude: coords?.lat,
-        longitude: coords?.lon,
-      }
+        longitude: coords?.lon
+      };
 
       const offerResponse = await fetch(`http://localhost:8080/offers`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(offerData),
-      })
+        body: JSON.stringify(offerData)
+      });
 
       if (!offerResponse.ok) {
-        const errorData = await offerResponse.json()
-        throw new Error(errorData.message || 'Failed to submit offer.')
+        const errorData = await offerResponse.json();
+        throw new Error(errorData.message || 'Failed to submit offer.');
       }
 
-      const newOffer = await offerResponse.json()
-      localStorage.removeItem('offerFormData')
-      resetForm()
-      router.push(`/offer/${newOffer.id}`)
+      const newOffer = await offerResponse.json();
+      localStorage.removeItem('offerFormData');
+      resetForm();
+      router.push(`/offer/${newOffer.id}`);
     } catch (err: any) {
-      setErrors({ form: err.message })
+      setErrors({ form: err.message });
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="mx-auto max-w-2xl p-4">
-      <h1 className="mb-6 text-2xl font-bold text-deep-dusk">
-        Add a New Parking Offer
-      </h1>
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4 rounded-lg bg-white p-6 shadow-md"
-      >
+      <h1 className="mb-6 text-2xl font-bold text-deep-dusk">Add a New Parking Offer</h1>
+      <form onSubmit={handleSubmit} className="space-y-4 rounded-lg bg-white p-6 shadow-md">
         {/* Form fields */}
         <div>
-          <label
-            htmlFor="title"
-            className="mb-1 block font-medium text-gray-700"
-          >
+          <label htmlFor="title" className="mb-1 block font-medium text-gray-700">
             Title
           </label>
           <input
@@ -184,15 +167,10 @@ export default function AddOfferPage() {
             className={`w-full rounded-md border p-2 focus:outline-none focus:ring-1 ${errors.title ? 'border-red-500 ring-red-500' : 'focus:ring-main-blue'}`}
             required
           />
-          {errors.title && (
-            <p className="mt-1 text-xs text-red-500">{errors.title}</p>
-          )}
+          {errors.title && <p className="mt-1 text-xs text-red-500">{errors.title}</p>}
         </div>
         <div>
-          <label
-            htmlFor="content"
-            className="mb-1 block font-medium text-gray-700"
-          >
+          <label htmlFor="content" className="mb-1 block font-medium text-gray-700">
             Description
           </label>
           <textarea
@@ -205,15 +183,10 @@ export default function AddOfferPage() {
             rows={4}
             required
           />
-          {errors.content && (
-            <p className="mt-1 text-xs text-red-500">{errors.content}</p>
-          )}
+          {errors.content && <p className="mt-1 text-xs text-red-500">{errors.content}</p>}
         </div>
         <div>
-          <label
-            htmlFor="price"
-            className="mb-1 block font-medium text-gray-700"
-          >
+          <label htmlFor="price" className="mb-1 block font-medium text-gray-700">
             Price per day (USD)
           </label>
           <input
@@ -226,15 +199,10 @@ export default function AddOfferPage() {
             className={`w-full rounded-md border p-2 focus:outline-none focus:ring-1 ${errors.price ? 'border-red-500 ring-red-500' : 'focus:ring-main-blue'}`}
             required
           />
-          {errors.price && (
-            <p className="mt-1 text-xs text-red-500">{errors.price}</p>
-          )}
+          {errors.price && <p className="mt-1 text-xs text-red-500">{errors.price}</p>}
         </div>
         <div>
-          <label
-            htmlFor="city"
-            className="mb-1 block font-medium text-gray-700"
-          >
+          <label htmlFor="city" className="mb-1 block font-medium text-gray-700">
             City
           </label>
           <input
@@ -247,15 +215,10 @@ export default function AddOfferPage() {
             className={`w-full rounded-md border p-2 focus:outline-none focus:ring-1 ${errors.city ? 'border-red-500 ring-red-500' : 'focus:ring-main-blue'}`}
             required
           />
-          {errors.city && (
-            <p className="mt-1 text-xs text-red-500">{errors.city}</p>
-          )}
+          {errors.city && <p className="mt-1 text-xs text-red-500">{errors.city}</p>}
         </div>
         <div>
-          <label
-            htmlFor="address"
-            className="mb-1 block font-medium text-gray-700"
-          >
+          <label htmlFor="address" className="mb-1 block font-medium text-gray-700">
             Address
           </label>
           <input
@@ -268,15 +231,10 @@ export default function AddOfferPage() {
             className={`w-full rounded-md border p-2 focus:outline-none focus:ring-1 ${errors.address ? 'border-red-500 ring-red-500' : 'focus:ring-main-blue'}`}
             required
           />
-          {errors.address && (
-            <p className="mt-1 text-xs text-red-500">{errors.address}</p>
-          )}
+          {errors.address && <p className="mt-1 text-xs text-red-500">{errors.address}</p>}
         </div>
         <div>
-          <label
-            htmlFor="type"
-            className="mb-1 block font-medium text-gray-700"
-          >
+          <label htmlFor="type" className="mb-1 block font-medium text-gray-700">
             Offer Type
           </label>
           <select
@@ -284,8 +242,7 @@ export default function AddOfferPage() {
             name="type"
             value={formData.type}
             onChange={handleChange}
-            className="w-full rounded-md border p-2 focus:outline-none focus:ring-1 focus:ring-main-blue"
-          >
+            className="w-full rounded-md border p-2 focus:outline-none focus:ring-1 focus:ring-main-blue">
             {Object.values(OfferType).map((type: string) => (
               <option key={type} value={type}>
                 {type}
@@ -300,25 +257,17 @@ export default function AddOfferPage() {
           <div className="flex h-48 w-full cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-gray-300 p-2 transition-colors hover:border-main-blue">
             {previewUrl ? (
               <div className="group relative h-full w-full">
-                <Image
-                  src={previewUrl}
-                  alt="Preview"
-                  fill
-                  className="object-contain"
-                  unoptimized
-                />
+                <Image src={previewUrl} alt="Preview" fill className="object-contain" unoptimized />
                 <button
                   type="button"
                   onClick={() => setPhoto(null)}
-                  className="absolute right-1 top-1 rounded-full bg-red-500 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                >
+                  className="absolute right-1 top-1 rounded-full bg-red-500 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-4 w-4"
                     fill="none"
                     viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                    stroke="currentColor">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -331,8 +280,7 @@ export default function AddOfferPage() {
             ) : (
               <label
                 htmlFor="photo"
-                className="flex h-full w-full cursor-pointer flex-col items-center justify-center text-gray-500"
-              >
+                className="flex h-full w-full cursor-pointer flex-col items-center justify-center text-gray-500">
                 <span>Click to Upload</span>
                 <span className="text-xs">(1 photo required)</span>
               </label>
@@ -347,9 +295,7 @@ export default function AddOfferPage() {
               className="w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-main-blue file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-deep-dusk"
               accept="image/*"
             />
-            {errors.photo && (
-              <p className="mt-1 text-xs text-red-500">{errors.photo}</p>
-            )}
+            {errors.photo && <p className="mt-1 text-xs text-red-500">{errors.photo}</p>}
           </div>
         </div>
 
@@ -358,11 +304,10 @@ export default function AddOfferPage() {
         <button
           type="submit"
           disabled={!isFormValid || submitting}
-          className="w-full rounded-md bg-main-blue px-5 py-3 text-white hover:bg-deep-dusk focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+          className="w-full rounded-md bg-main-blue px-5 py-3 text-white hover:bg-deep-dusk focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
           {submitting ? 'Submitting...' : 'Add Offer'}
         </button>
       </form>
     </div>
-  )
+  );
 }

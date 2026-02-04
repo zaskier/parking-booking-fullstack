@@ -1,9 +1,9 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
-    request,
-  })
+    request
+  });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -11,52 +11,48 @@ export async function updateSession(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll()
+          return request.cookies.getAll();
         },
         setAll(
           cookiesToSet: {
-            name: string
-            value: string
-            options: CookieOptions
-          }[],
+            name: string;
+            value: string;
+            options: CookieOptions;
+          }[]
         ) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            request.cookies.set(name, value),
-          )
+          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
 
           supabaseResponse = NextResponse.next({
-            request,
-          })
+            request
+          });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options),
-          )
-        },
-      },
-    },
-  )
+            supabaseResponse.cookies.set(name, value, options)
+          );
+        }
+      }
+    }
+  );
 
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { user }
+  } = await supabase.auth.getUser();
 
-  const redirectAuthorisedUserRoutes = ['/sign-in', '/sign-up']
-  const redirectUnauthorisedUserRoutes = ['booking', 'about', 'add-offer']
+  const redirectAuthorisedUserRoutes = ['/sign-in', '/sign-up'];
+  const redirectUnauthorisedUserRoutes = ['booking', 'offer/add'];
 
   if (!user) {
     if (
-      redirectAuthorisedUserRoutes.some((route) =>
-        request.nextUrl.pathname.startsWith(`/${route}`),
-      )
+      redirectAuthorisedUserRoutes.some((route) => request.nextUrl.pathname.startsWith(`/${route}`))
     ) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/sign-in'
-      return NextResponse.redirect(url)
+      const url = request.nextUrl.clone();
+      url.pathname = '/sign-in';
+      return NextResponse.redirect(url);
     }
   } else {
     if (redirectUnauthorisedUserRoutes.includes(request.nextUrl.pathname)) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/'
-      return NextResponse.redirect(url)
+      const url = request.nextUrl.clone();
+      url.pathname = '/';
+      return NextResponse.redirect(url);
     }
   }
 
@@ -73,5 +69,5 @@ export async function updateSession(request: NextRequest) {
   // If this is not done, you may be causing the browser and server to go out
   // of sync and terminate the user's session prematurely!
 
-  return supabaseResponse
+  return supabaseResponse;
 }

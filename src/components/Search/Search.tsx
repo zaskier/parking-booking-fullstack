@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link'; // Import Link
+import Link from 'next/link';
 import Datetime from 'react-datetime';
 import findAddOffer from '../../../public/homepage/find-add-offer.svg';
 
 import Dropdown from '@/components/Homepage/Dropdown';
-import Offers from '@/components/Offers/Offers'; 
+import Offers from '@/components/Offers/Offers';
 
 const cities = require('./cities.json');
 
@@ -77,7 +77,7 @@ export default function Search({}) {
             </li>
             <li className="me-2 w-full">
               <Link
-                href="/add-offer"
+                href="offer/add"
                 aria-current="page"
                 className="active inline-block w-full rounded-t-lg bg-gray-100 p-4 text-blue-100 dark:bg-main-blue dark:text-white">
                 Add Parking Offer
@@ -169,7 +169,11 @@ export default function Search({}) {
 
             <div className="m-3 flex w-full flex-row">
               <div className="mr-3 w-full rounded-md bg-main-gray px-4 py-4 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                <Dropdown label="Parking Type" options={parkingTypeOptions} onSelect={handleParkingType} />
+                <Dropdown
+                  label="Parking Type"
+                  options={parkingTypeOptions}
+                  onSelect={handleParkingType}
+                />
               </div>
               <button
                 onClick={handleShowOffers}
