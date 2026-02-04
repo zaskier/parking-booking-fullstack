@@ -1,10 +1,22 @@
+version: '3.8'
+
 services:
-  backend:
+  frontend:
     build: .
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
     ports:
       - '8080:8080'
     env_file:
-      - .env.dev
+      - ./backend/.env.dev
     environment:
       - DB_HOST=postgres
       - DB_PORT=${DB_PORT}
@@ -14,14 +26,14 @@ services:
     depends_on:
       - postgres
     volumes:
-      - .:/usr/src/app
+      - ./backend:/usr/src/app
       - /usr/src/app/node_modules
     command: sh -c "yarn migration:run && yarn seed && yarn start:dev"
 
   postgres:
     image: postgres:13
     env_file:
-      - .env.dev
+      - ./backend/.env.dev
     environment:
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
