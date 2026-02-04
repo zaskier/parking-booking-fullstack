@@ -61,6 +61,7 @@ interface OfferFormState {
   photo: File | null
   imageUrl: string | null
   errors: OfferFormErrors
+  touched: { [key in keyof OfferFormData]?: boolean }
   isFormValid: boolean
   submitting: boolean
 
@@ -68,9 +69,10 @@ interface OfferFormState {
   setPhoto: (file: File | null) => void
   setImageUrl: (url: string | null) => void
   setErrors: (errors: OfferFormErrors) => void
+  setTouched: (touched: { [key in keyof OfferFormData]?: boolean }) => void
   setSubmitting: (submitting: boolean) => void
   resetForm: () => void
-  validateForm: () => void
+  validateField: (name: keyof OfferFormData, value: string) => void
   validateAllFields: () => boolean
 }
 
@@ -86,36 +88,22 @@ export const useOfferFormStore = create<OfferFormState>((set, get) => ({
   photo: null,
   imageUrl: null,
   errors: {},
+  touched: {},
   isFormValid: false,
   submitting: false,
 
   setFormData: (data) => {
-    set((state) => {
-      const newErrors = { ...state.errors }
-      Object.entries(data).forEach(([key, value]) => {
-        const error = validateField(key as keyof OfferFormData, value as string)
-        if (error) {
-          newErrors[key as keyof OfferFormErrors] = error
-        } else {
-          delete newErrors[key as keyof OfferFormErrors]
-        }
-      })
-      return { formData: { ...state.formData, ...data }, errors: newErrors }
-    })
-    get().validateForm()
+    set((state) => ({ formData: { ...state.formData, ...data } }));
   },
   setPhoto: (file) => {
     set((state) => ({
       photo: file,
       errors: { ...state.errors, photo: undefined },
-    }))
-    get().validateForm()
+    }));
   },
   setImageUrl: (url) => set({ imageUrl: url }),
-  setErrors: (errors) => {
-    set({ errors })
-    get().validateForm()
-  },
+  setErrors: (errors) => set({ errors }),
+  setTouched: (touched) => set((state) => ({ touched: { ...state.touched, ...touched } })),
   setSubmitting: (submitting) => set({ submitting }),
   resetForm: () =>
     set({
@@ -130,36 +118,37 @@ export const useOfferFormStore = create<OfferFormState>((set, get) => ({
       photo: null,
       imageUrl: null,
       errors: {},
+      touched: {},
       isFormValid: false,
       submitting: false,
     }),
-  validateForm: () => {
-    const { formData, photo, errors } = get()
-    const hasErrors = Object.values(errors).some((error) => !!error)
-    const allFieldsFilled = Object.values(formData).every((field) => field)
-    const isValid = !hasErrors && allFieldsFilled && !!photo
-    set({ isFormValid: isValid })
+  validateField: (name, value) => {
+    const error = validateField(name, value);
+    set((state) => ({
+      errors: { ...state.errors, [name]: error },
+    }));
   },
   validateAllFields: () => {
     const { formData, photo } = get()
     const newErrors: OfferFormErrors = {}
     let isValid = true
 
-    ;(Object.keys(formData) as Array<keyof OfferFormData>).forEach((key) => {
+    const newTouched: { [key in keyof OfferFormData]?: boolean } = {};
+    (Object.keys(formData) as Array<keyof OfferFormData>).forEach((key) => {
+      newTouched[key] = true;
       const error = validateField(key, formData[key])
       if (error) {
         newErrors[key as keyof OfferFormErrors] = error
         isValid = false
       }
-    })
+    });
 
     if (!photo) {
       newErrors.photo = 'A photo is required.'
       isValid = false
     }
 
-    set({ errors: newErrors })
-    get().validateForm()
+    set({ errors: newErrors, touched: newTouched });
     return isValid
   },
-}))
+}));

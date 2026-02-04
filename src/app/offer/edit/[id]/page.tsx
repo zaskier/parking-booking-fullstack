@@ -24,7 +24,7 @@ export default function EditOfferPage({ params }: { params: { id: string } }) {
     setErrors,
     setSubmitting,
     resetForm,
-    validateAllFields,
+    validateAllFields
   } = useOfferFormStore();
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -34,13 +34,16 @@ export default function EditOfferPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     const authorizeAndFetchOffer = async () => {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error: userError
+      } = await supabase.auth.getUser();
 
       if (userError || !user) {
         setUnauthorized(true);
         return;
       }
-      
+
       try {
         const response = await fetch(`http://localhost:8080/offers/${id}`);
         if (!response.ok) throw new Error('Failed to fetch offer data.');
@@ -53,7 +56,7 @@ export default function EditOfferPage({ params }: { params: { id: string } }) {
             price: offerData.price.toString(),
             city: offerData.city,
             address: offerData.address,
-            type: offerData.type,
+            type: offerData.type
           });
           setImageUrl(offerData.image);
           setPreviewUrl(offerData.image);
@@ -106,7 +109,7 @@ export default function EditOfferPage({ params }: { params: { id: string } }) {
       try {
         const uploadResponse = await fetch(`http://localhost:8080/offers/upload`, {
           method: 'POST',
-          body: photoFormData,
+          body: photoFormData
         });
         if (!uploadResponse.ok) throw new Error('Failed to upload photo.');
         const uploadResult = await uploadResponse.json();
@@ -132,13 +135,13 @@ export default function EditOfferPage({ params }: { params: { id: string } }) {
         price: parseFloat(formData.price),
         image: imageUrl,
         latitude: coords?.lat,
-        longitude: coords?.lon,
+        longitude: coords?.lon
       };
 
       const response = await fetch(`/api/offers/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(offerData),
+        body: JSON.stringify(offerData)
       });
 
       if (!response.ok) {
@@ -157,14 +160,14 @@ export default function EditOfferPage({ params }: { params: { id: string } }) {
 
   if (loading || unauthorized) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex h-screen items-center justify-center">
         <LoadingSpinner />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-2xl p-4">
+    <div className="p-4">
       <h1 className="mb-6 text-2xl font-bold text-deep-dusk">Edit Parking Offer</h1>
       <form onSubmit={handleSubmit} className="space-y-4 rounded-lg bg-white p-6 shadow-md">
         {/* Form fields are identical to add-offer page, so they are omitted for brevity but would be included here */}

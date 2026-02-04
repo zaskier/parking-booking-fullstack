@@ -12,20 +12,22 @@ export default function AddOfferPage() {
     formData,
     photo,
     errors,
-    isFormValid,
+    touched,
     submitting,
     setFormData,
     setPhoto,
     setImageUrl,
     setErrors,
+    setTouched,
     setSubmitting,
     resetForm,
+    validateField,
     validateAllFields
   } = useOfferFormStore();
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // Load form data from local storage on mount
+  // Load form data from local storage on mount without validation
   useEffect(() => {
     const savedData = localStorage.getItem('offerFormData');
     if (savedData) {
@@ -49,11 +51,7 @@ export default function AddOfferPage() {
     if (photo) {
       const url = URL.createObjectURL(photo);
       setPreviewUrl(url);
-
-      // Cleanup URL on unmount
-      return () => {
-        URL.revokeObjectURL(url);
-      };
+      return () => URL.revokeObjectURL(url);
     } else {
       setPreviewUrl(null);
     }
@@ -62,12 +60,14 @@ export default function AddOfferPage() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target as {
-      name: keyof OfferFormData;
-      value: string;
-    };
-
+    const { name, value } = e.target as { name: keyof OfferFormData; value: string };
     setFormData({ [name]: value });
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target as { name: keyof OfferFormData; value: string };
+    setTouched({ [name]: true });
+    validateField(name, value);
   };
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,7 +149,7 @@ export default function AddOfferPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl p-4">
+    <div className="p-4">
       <h1 className="mb-6 text-2xl font-bold text-deep-dusk">Add a New Parking Offer</h1>
       <form onSubmit={handleSubmit} className="space-y-4 rounded-lg bg-white p-6 shadow-md">
         {/* Form fields */}
@@ -163,11 +163,14 @@ export default function AddOfferPage() {
             type="text"
             value={formData.title}
             onChange={handleChange}
+            onBlur={handleBlur}
             placeholder="e.g., Secure Underground Parking"
-            className={`w-full rounded-md border p-2 focus:outline-none focus:ring-1 ${errors.title ? 'border-red-500 ring-red-500' : 'focus:ring-main-blue'}`}
+            className={`w-full rounded-md border p-2 focus:outline-none focus:ring-1 ${touched.title && errors.title ? 'border-red-500 ring-red-500' : 'focus:ring-main-blue'}`}
             required
           />
-          {errors.title && <p className="mt-1 text-xs text-red-500">{errors.title}</p>}
+          {touched.title && errors.title && (
+            <p className="mt-1 text-xs text-red-500">{errors.title}</p>
+          )}
         </div>
         <div>
           <label htmlFor="content" className="mb-1 block font-medium text-gray-700">
@@ -178,12 +181,15 @@ export default function AddOfferPage() {
             name="content"
             value={formData.content}
             onChange={handleChange}
+            onBlur={handleBlur}
             placeholder="Details about the parking spot"
-            className={`w-full rounded-md border p-2 focus:outline-none focus:ring-1 ${errors.content ? 'border-red-500 ring-red-500' : 'focus:ring-main-blue'}`}
+            className={`w-full rounded-md border p-2 focus:outline-none focus:ring-1 ${touched.content && errors.content ? 'border-red-500 ring-red-500' : 'focus:ring-main-blue'}`}
             rows={4}
             required
           />
-          {errors.content && <p className="mt-1 text-xs text-red-500">{errors.content}</p>}
+          {touched.content && errors.content && (
+            <p className="mt-1 text-xs text-red-500">{errors.content}</p>
+          )}
         </div>
         <div>
           <label htmlFor="price" className="mb-1 block font-medium text-gray-700">
@@ -195,11 +201,14 @@ export default function AddOfferPage() {
             type="text"
             value={formData.price}
             onChange={handleChange}
+            onBlur={handleBlur}
             placeholder="e.g., 25.50"
-            className={`w-full rounded-md border p-2 focus:outline-none focus:ring-1 ${errors.price ? 'border-red-500 ring-red-500' : 'focus:ring-main-blue'}`}
+            className={`w-full rounded-md border p-2 focus:outline-none focus:ring-1 ${touched.price && errors.price ? 'border-red-500 ring-red-500' : 'focus:ring-main-blue'}`}
             required
           />
-          {errors.price && <p className="mt-1 text-xs text-red-500">{errors.price}</p>}
+          {touched.price && errors.price && (
+            <p className="mt-1 text-xs text-red-500">{errors.price}</p>
+          )}
         </div>
         <div>
           <label htmlFor="city" className="mb-1 block font-medium text-gray-700">
@@ -211,11 +220,14 @@ export default function AddOfferPage() {
             type="text"
             value={formData.city}
             onChange={handleChange}
+            onBlur={handleBlur}
             placeholder="e.g., New York"
-            className={`w-full rounded-md border p-2 focus:outline-none focus:ring-1 ${errors.city ? 'border-red-500 ring-red-500' : 'focus:ring-main-blue'}`}
+            className={`w-full rounded-md border p-2 focus:outline-none focus:ring-1 ${touched.city && errors.city ? 'border-red-500 ring-red-500' : 'focus:ring-main-blue'}`}
             required
           />
-          {errors.city && <p className="mt-1 text-xs text-red-500">{errors.city}</p>}
+          {touched.city && errors.city && (
+            <p className="mt-1 text-xs text-red-500">{errors.city}</p>
+          )}
         </div>
         <div>
           <label htmlFor="address" className="mb-1 block font-medium text-gray-700">
@@ -227,11 +239,14 @@ export default function AddOfferPage() {
             type="text"
             value={formData.address}
             onChange={handleChange}
+            onBlur={handleBlur}
             placeholder="e.g., 123 Main St"
-            className={`w-full rounded-md border p-2 focus:outline-none focus:ring-1 ${errors.address ? 'border-red-500 ring-red-500' : 'focus:ring-main-blue'}`}
+            className={`w-full rounded-md border p-2 focus:outline-none focus:ring-1 ${touched.address && errors.address ? 'border-red-500 ring-red-500' : 'focus:ring-main-blue'}`}
             required
           />
-          {errors.address && <p className="mt-1 text-xs text-red-500">{errors.address}</p>}
+          {touched.address && errors.address && (
+            <p className="mt-1 text-xs text-red-500">{errors.address}</p>
+          )}
         </div>
         <div>
           <label htmlFor="type" className="mb-1 block font-medium text-gray-700">
@@ -295,7 +310,9 @@ export default function AddOfferPage() {
               className="w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-main-blue file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-deep-dusk"
               accept="image/*"
             />
-            {errors.photo && <p className="mt-1 text-xs text-red-500">{errors.photo}</p>}
+            {touched.photo && errors.photo && (
+              <p className="mt-1 text-xs text-red-500">{errors.photo}</p>
+            )}
           </div>
         </div>
 
@@ -303,7 +320,7 @@ export default function AddOfferPage() {
 
         <button
           type="submit"
-          disabled={!isFormValid || submitting}
+          disabled={submitting}
           className="w-full rounded-md bg-main-blue px-5 py-3 text-white hover:bg-deep-dusk focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
           {submitting ? 'Submitting...' : 'Add Offer'}
         </button>
