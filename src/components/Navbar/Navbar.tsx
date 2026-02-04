@@ -19,7 +19,7 @@ export default function Navbar({}) {
 
   const menuItems: IMenuItem[] = [
     { name: 'Reservations', redirect: '/', icon: reservationsIcon }, //todo add proper redirects
-    { name: 'My Offers', redirect: '/my-offers', icon: yourOffersIcon },
+    { name: 'My Offers', redirect: '/panel/offers/as-owner', icon: yourOffersIcon },
     { name: 'Account', redirect: '/account', icon: accountIcon },
     { name: 'Sign In', redirect: '/sign-in', icon: signInIconIcon },
   ]
