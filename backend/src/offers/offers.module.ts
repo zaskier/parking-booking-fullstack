@@ -3,6 +3,7 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Offer } from '../database/entities/offer.entity';
 import { CreateOfferHandler } from './application/commands/handlers/create-offer.handler';
+import { UpdateOfferHandler } from './application/commands/handlers/update-offer.handler';
 import { FindAllOffersHandler } from './application/queries/handlers/find-all-offers.handler';
 import { FindOneOfferHandler } from './application/queries/handlers/find-one-offer.handler';
 import { OffersController } from './presentation/offers.controller';
@@ -17,6 +18,7 @@ import { OfferTypeOrmRepository } from './infrastructure/repositories/offer.type
     FindAllOffersHandler,
     CreateOfferHandler,
     FindOneOfferHandler,
+    UpdateOfferHandler,
     {
       provide: OfferRepository,
       useClass: OfferTypeOrmRepository,

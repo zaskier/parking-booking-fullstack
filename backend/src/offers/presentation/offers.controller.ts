@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   UploadedFile,
@@ -15,7 +16,9 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs'
 import { FileInterceptor } from '@nestjs/platform-express'
 import type { Express } from 'express'
 import { CreateOfferCommand } from '../application/commands/impl/create-offer.command'
+import { UpdateOfferCommand } from '../application/commands/impl/update-offer.command'
 import { CreateOfferDto } from '../application/dtos/create-offer.dto'
+import { UpdateOfferDto } from '../application/dtos/update-offer.dto'
 import { FindAllOffersQuery } from '../application/queries/impl/find-all-offers.query'
 import { FindOneOfferQuery } from '../application/queries/impl/find-one-offer.query'
 import { UploadsService } from '../../uploads/uploads.service'
@@ -33,6 +36,11 @@ export class OffersController {
   @Post()
   create(@Body() createOfferDto: CreateOfferDto) {
     return this.commandBus.execute(new CreateOfferCommand(createOfferDto))
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateOfferDto: UpdateOfferDto) {
+    return this.commandBus.execute(new UpdateOfferCommand(+id, updateOfferDto));
   }
 
   @Get(':id')
