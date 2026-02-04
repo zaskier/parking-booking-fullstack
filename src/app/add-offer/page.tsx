@@ -87,7 +87,7 @@ export default function AddOfferPage() {
 
       try {
         const uploadResponse = await fetch(
-          `http://localhost:8080/offers/upload`,
+          `http://localhost:8080/offers/image`,
           {
             method: 'POST',
             body: photoFormData,

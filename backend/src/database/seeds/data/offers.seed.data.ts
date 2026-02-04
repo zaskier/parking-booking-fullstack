@@ -1,4 +1,4 @@
-import { OfferType } from '../../../offers/enums/type.enum'
+import { OfferType } from 'src/offers/domain/enums/type.enum'
 
 export const OFFERS_SEED_DATA = [
   {

@@ -1,23 +1,26 @@
-import { Module } from '@nestjs/common'
-import { CqrsModule } from '@nestjs/cqrs'
-import { TypeOrmModule } from '@nestjs/typeorm'
-import { Offer } from '../database/entities/offer.entity'
-import { CreateOfferHandler } from './commands/handlers/create-offer.handler'
-import { FindAllOffersHandler } from './queries/handlers/find-all-offers.handler'
-import { FindOneOfferHandler } from './queries/handlers/find-one-offer.handler'
-import { OffersController } from './offers.controller'
-import { OffersService } from './offers.service'
-import { UploadsModule } from '../uploads/uploads.module'
+import { Module } from '@nestjs/common';
+import { CqrsModule } from '@nestjs/cqrs';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Offer } from '../database/entities/offer.entity';
+import { CreateOfferHandler } from './application/commands/handlers/create-offer.handler';
+import { FindAllOffersHandler } from './application/queries/handlers/find-all-offers.handler';
+import { FindOneOfferHandler } from './application/queries/handlers/find-one-offer.handler';
+import { OffersController } from './presentation/offers.controller';
+import { UploadsModule } from '../uploads/uploads.module';
+import { OfferRepository } from './domain/repositories/offer.repository';
+import { OfferTypeOrmRepository } from './infrastructure/repositories/offer.typeorm.repository';
 
 @Module({
   imports: [CqrsModule, TypeOrmModule.forFeature([Offer]), UploadsModule],
   controllers: [OffersController],
   providers: [
-    OffersService,
     FindAllOffersHandler,
     CreateOfferHandler,
     FindOneOfferHandler,
+    {
+      provide: OfferRepository,
+      useClass: OfferTypeOrmRepository,
+    },
   ],
-  exports: [OffersService],
 })
 export class OffersModule {}
