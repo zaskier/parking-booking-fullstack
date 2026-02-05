@@ -20,7 +20,7 @@ export class OfferTypeOrmRepository extends OfferRepository {
     return offerEntity ? OfferMapper.toDomain(offerEntity) : null
   }
 
-  async findAll(type?: string, email?: string): Promise<Offer[]> {
+  async findAll(type?: string, email?: string, city?: string): Promise<Offer[]> {
     const queryBuilder = this.offerEntityRepository.createQueryBuilder('offer');
 
     if (type) {
@@ -28,6 +28,9 @@ export class OfferTypeOrmRepository extends OfferRepository {
     }
     if (email) {
       queryBuilder.andWhere('LOWER(offer.email) = LOWER(:email)', { email });
+    }
+    if (city) {
+      queryBuilder.andWhere('LOWER(offer.city) = LOWER(:city)', { city });
     }
     
     const offerEntities = await queryBuilder.getMany();

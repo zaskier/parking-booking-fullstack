@@ -52,8 +52,9 @@ export class OffersController {
   findAll(
     @Query('type') type?: OfferType,
     @Query('email') email?: string,
+    @Query('city') city?: string,
   ): Promise<Offer[]> {
-    return this.queryBus.execute(new FindAllOffersQuery(type, email))
+    return this.queryBus.execute(new FindAllOffersQuery(type, email, city))
   }
 
   @Post('image')

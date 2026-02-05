@@ -12,7 +12,7 @@ export class FindAllOffersHandler implements IQueryHandler<FindAllOffersQuery> {
   ) {}
 
   async execute(query: FindAllOffersQuery): Promise<Offer[]> {
-    const { type, email } = query;
-    return this.offerRepository.findAll(type, email);
+    const { type, email, city } = query;
+    return this.offerRepository.findAll(type, email, city);
   }
 }
