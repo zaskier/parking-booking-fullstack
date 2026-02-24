@@ -24,6 +24,8 @@ import { FindOneOfferQuery } from '../application/queries/impl/find-one-offer.qu
 import { UploadsService } from '../../uploads/uploads.service'
 import { OfferType } from '../domain/enums/type.enum'
 import { Offer } from '../domain/entities/offer'
+import { BookOfferCommand } from '../application/commands/book-offer.command'
+import { BookOfferDto } from '../presentation/dtos/book-offer.dto'
 
 @Controller('offers')
 export class OffersController {
@@ -55,6 +57,16 @@ export class OffersController {
     @Query('city') city?: string,
   ): Promise<Offer[]> {
     return this.queryBus.execute(new FindAllOffersQuery(type, email, city))
+  }
+
+  @Post(':id/book')
+  async bookOffer(
+    @Param('id') id: string,
+    @Body() bookOfferDto: BookOfferDto,
+  ) {
+    const dateFrom = new Date(bookOfferDto.dateFrom);
+    const dateTo = new Date(bookOfferDto.dateTo);
+    return this.commandBus.execute(new BookOfferCommand(+id, dateFrom, dateTo));
   }
 
   @Post('image')
