@@ -27,8 +27,8 @@ export class OfferMapper {
     offerEntity.price = offer.price;
     offerEntity.city = offer.city;
     offerEntity.address = offer.address;
-    offerEntity.latitude = offer.latitude;
-    offerEntity.longitude = offer.longitude;
+    offerEntity.latitude = Number(offer.latitude);
+    offerEntity.longitude = Number(offer.longitude);
     offerEntity.type = offer.type;
     offerEntity.email = offer.email;
     return offerEntity;

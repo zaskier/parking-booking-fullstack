@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useOfferFormStore, OfferType, OfferFormData } from '../../../store/useOfferFormStore';
 import { getCoordsForAddress } from '../../../utils/geocoding/getCoordsForAddress';
+import { supabase } from '../../../utils/supabase/client';
 
 export default function AddOfferPage() {
   const router = useRouter();
@@ -26,6 +27,19 @@ export default function AddOfferPage() {
   } = useOfferFormStore();
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
+      if (user) {
+        setUserEmail(user.email || null);
+      }
+    };
+    fetchUser();
+  }, []);
 
   // Load form data from local storage on mount without validation
   useEffect(() => {
@@ -103,6 +117,11 @@ export default function AddOfferPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!userEmail) {
+      setErrors({ form: 'Could not verify user. Please try again.' });
+      return;
+    }
+
     const isValid = validateAllFields();
     if (!isValid || !useOfferFormStore.getState().imageUrl) {
       if (!useOfferFormStore.getState().imageUrl) {
@@ -116,12 +135,17 @@ export default function AddOfferPage() {
     try {
       const coords = await getCoordsForAddress(formData.address);
 
+      if (!coords) {
+        throw new Error('Could not find coordinates for the provided address. Please check the address and try again.');
+      }
+
       const offerData = {
         ...formData,
         price: parseFloat(formData.price),
         image: useOfferFormStore.getState().imageUrl,
-        latitude: coords?.lat,
-        longitude: coords?.lon
+        latitude: coords.lat,
+        longitude: coords.lon,
+        email: userEmail,
       };
 
       const offerResponse = await fetch(`http://localhost:8080/offers`, {
@@ -320,7 +344,7 @@ export default function AddOfferPage() {
 
         <button
           type="submit"
-          disabled={submitting}
+          disabled={submitting || !userEmail}
           className="w-full rounded-md bg-main-blue px-5 py-3 text-white hover:bg-deep-dusk focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
           {submitting ? 'Submitting...' : 'Add Offer'}
         </button>

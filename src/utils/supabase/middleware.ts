@@ -38,18 +38,16 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const redirectAuthorisedUserRoutes = ['/sign-in', '/sign-up'];
-  const redirectUnauthorisedUserRoutes = ['booking', 'offer/add'];
+  const redirectUnauthorisedUserRoutes = ['/booking', '/offer/add', '/panel/offers/as-owner'];
 
   if (!user) {
-    if (
-      redirectAuthorisedUserRoutes.some((route) => request.nextUrl.pathname.startsWith(`/${route}`))
-    ) {
+    if (redirectUnauthorisedUserRoutes.includes(request.nextUrl.pathname)) {
       const url = request.nextUrl.clone();
       url.pathname = '/sign-in';
       return NextResponse.redirect(url);
     }
   } else {
-    if (redirectUnauthorisedUserRoutes.includes(request.nextUrl.pathname)) {
+    if (redirectAuthorisedUserRoutes.some((route) => request.nextUrl.pathname.startsWith(route))) {
       const url = request.nextUrl.clone();
       url.pathname = '/';
       return NextResponse.redirect(url);
